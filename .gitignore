@@ -1,0 +1,10 @@
+# Output files 
+*.endf 
+*.txt 
+
+# Specific folders 
+scraping/*
+figures/*
+
+# Python-specific
+__pycache__
