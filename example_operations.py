@@ -7,13 +7,14 @@ from endf_handling import ENDFHandling
 
 endf_files = list(Path("scraping/endf_files_renamed").glob("**/*.endf"))
 
+
 for endf_path in tqdm(endf_files, desc="Reading ENDF files", total=len(endf_files)):
     endf = ENDFHandling(endf_file_path=endf_path)
 
     endf.create_material()
 
     material_name = endf.material_name
-    scattering_subset = endf.get_subset(endf.scattering_mt)
+    scattering_subset = endf.get_subset(endf.absorption_mt)
 
     for key, value in scattering_subset.items():
         energy = value["energy"]
