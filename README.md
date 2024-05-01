@@ -2,7 +2,7 @@
 
 ## Overview 
 
-ENDF (Evaluated Nuclear Data File) is a standardized data format for handling nuclear data such as cross-sections for different isotopes. The  file format is based on tape data formats, using columns and line numbers. For example, the start of MT2 (elastic scattering) for H-1 is shown below. Columns 75 - 80 are the line number, with `99999` indicating the start of a new section, 70 - 72 is the MF number (data type, like general information, cross-sections, resonance information etc.), and 72 - 75 is the MT (the reaction number, for example elastic scattering, fission etc.) For a full overview, see [this list](https://www.nndc.bnl.gov/endf/help.html#reaction). After the header, the data starts, with the energy (in eV), and the cross-section (in barn, so 1e-28 m$^2$) alternates. 
+ENDF (Evaluated Nuclear Data File) is a standardized data format for handling nuclear data such as cross-sections for different isotopes. The  file format is based on tape data formats, using columns and line numbers. For example, the start of MT2 (elastic scattering) for H-1 is shown below. Columns 75 - 80 are the line number, with `99999` indicating the start of a new section, 70 - 72 is the MF number (data type, like general information, cross-sections, resonance information etc.), and 72 - 75 is the MT (the reaction number, for example elastic scattering, fission etc.) For a full overview, see [this list](https://www.nndc.bnl.gov/endf/help.html#reaction). After the header, the data starts, with the energy (in eV), and the cross-section (in barn) alternating. 
 
 ```
                                                                    125 3  099999
