@@ -55,7 +55,7 @@ destination_folder.mkdir(exist_ok=True, parents=True)
 for endf_path in tqdm(endf_files, desc="Reading ENDF files", total=len(endf_files)):
     endf = ENDFHandling(endf_file_path=endf_path)
 
-    endf_name = endf.get_endf_name()
+    endf_name = endf.material_name
 
     destination_path = destination_folder / Path(endf_name.lower() + ".endf")
     if destination_path.exists():
