@@ -15,7 +15,7 @@ class ENDFHandling:
         Args:
             endf_file_path (Path): Path to ENDF file.
         """
-        self.scattering_mt = [2, 4]
+        self.scattering_mt = [2]
         self.absorption_mt = range(101, 118)
 
         self.COLUMN_INCREMENT = 11

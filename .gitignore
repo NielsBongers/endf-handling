@@ -10,3 +10,4 @@ figures/*
 
 # Python-specific
 __pycache__
+sandbox.py
