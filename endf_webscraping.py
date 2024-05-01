@@ -10,18 +10,23 @@ from tqdm import tqdm
 
 from endf_handling import ENDFHandling
 
-endf_webpage = "scraping/source.html"
+endf_webpage = Path("D:\Downloads\E4_Servlet_ Select.html")
+
+if not endf_webpage.exists():
+    raise FileNotFoundError
 
 eval_id_list = []
 
 with open(endf_webpage) as f:
     for line in f:
-        pattern = r" PEN <\/a><a href=\"E4sGetEvaluation\?Pen=2&amp;EvalID=([0-9]+)\n"
+        pattern = r" PEN <\/a><a href=\"https:\/\/www-nds\.iaea\.org\/exfor\/servlet\/E4sGetEvaluation\?Pen=2&amp;EvalID=([0-9]+)"
 
         results = re.findall(pattern, line)
 
         if len(results) > 0:
             eval_id_list.append(results[0])
+
+print(f"Found {len(eval_id_list)} entries.")
 
 base_url = "https://www-nds.iaea.org/exfor/servlet/E4sGetEvaluation?Pen=1&EvalID="
 request_urls = [base_url + eval_id for eval_id in eval_id_list]

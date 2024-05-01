@@ -1,9 +1,11 @@
 # Output files 
 *.endf 
 *.txt 
+*.json 
+*.csv
+*.html 
 
 # Specific folders 
-scraping/*
 figures/*
 
 # Python-specific

@@ -1,3 +1,4 @@
+import json
 import re
 from pathlib import Path
 
@@ -6,7 +7,14 @@ import numpy as np
 
 
 class ENDFHandling:
+    """Simple class for handling ENDF files."""
+
     def __init__(self, endf_file_path: Path):
+        """Initializes the handler by opening a given ENDF path.
+
+        Args:
+            endf_file_path (Path): Path to ENDF file.
+        """
         self.scattering_mt = [2, 4]
         self.absorption_mt = range(101, 118)
 
@@ -17,7 +25,17 @@ class ENDFHandling:
 
         self.import_endf()
 
+        self.material_name = self.get_endf_name()
+
     def import_endf(self) -> dict:
+        """Imports the ENDF file specified in __init__.
+
+        Raises:
+            FileNotFoundError: ENDF file path does not exist.
+
+        Returns:
+            dict: Dictionary containing the ENDF data, with MTs as the keys.
+        """
         if not Path(self.endf_file_path).exists():
             print(f"Specified ENDF file not found: {self.endf_file_path}")
             raise FileNotFoundError
@@ -82,43 +100,59 @@ class ENDFHandling:
                 # Pushing to their respective lists in the MT segment.
                 self.endf_data[str(mt)]["energy"].extend(energies)
                 self.endf_data[str(mt)]["cross_section"].extend(cross_sections)
-
-        # Saving as JSON.
-        # with open("endf_data/endf_example_data.json", "w") as f:
-        #     json.dump(self.endf_data, f, indent=4)
-
         return self.endf_data
 
-    def plot_mt_cross_sections(self):
-        for mt in self.endf_data.keys():
-            # if not (int(mt) in self.scattering_mt):
-            #     continue
+    def to_json(self, file_path: Path, saved_data: dict = None):
+        """Saves the ENDF data as a JSON.
 
-            if not int(mt) == 2:
+        Args:
+            file_path (Path): File path to save to.
+            saved_data (dict, optional): Subset to save. Defaults to None.
+        """
+        with open(file_path, "w") as f:
+
+            if not saved_data:
+                json.dump(self.endf_data, f, indent=4)
+            else:
+                json.dump(saved_data, f, indent=4)
+
+    def plot_mt_cross_sections(self, mt_range: list = None):
+        """Plotting a certain range of MTs.
+
+        Args:
+            mt_range (list, optional): Range to plot. Defaults to None.
+        """
+        for mt in self.endf_data.keys():
+            if mt_range and int(mt) not in list(mt_range):
                 continue
 
             energy = self.endf_data[mt]["energy"]
             cross_section = self.endf_data[mt]["cross_section"]
 
-            if max(cross_section) <= 1e-1:
-                continue
-
             plt.plot(energy, cross_section, label=f"MT{mt}")
+
+        Path("figures").mkdir(exist_ok=True, parents=True)
 
         plt.legend()
         plt.loglog()
-        # plt.ylim([1e-10, 50])
-        # plt.xlim([1e-6, 1e8])
         plt.title("Cross-sections")
         plt.xlabel("Energy (eV)")
         plt.ylabel("Cross-section (barn)")
         plt.savefig(
-            "endf_data/results/30042024 - Neutron Monte Carlo - relevant absorption cross-sections.png",
+            "figures/result.png",
             dpi=300,
         )
         plt.show()
 
     def get_subset(self, mt_range: list) -> dict:
+        """Extracts a subset of MTs.
+
+        Args:
+            mt_range (list): Range to extract.
+
+        Returns:
+            dict: Extracted subset from the main data.
+        """
         mt_subset = {}
 
         for mt in self.endf_data.keys():
@@ -127,7 +161,15 @@ class ENDFHandling:
 
         return mt_subset
 
-    def aggregate_mts(self, mt_range: list):
+    def aggregate_mts(self, mt_range: list) -> tuple[np.array, np.array]:
+        """Combines multiple MTs by interpolating their individual energies.
+
+        Args:
+            mt_range (list): Range of MTs to combine.
+
+        Returns:
+            tuple[np.array, np.array]: Tuple of energies and interpolated cross-sections.
+        """
         scattering_subset = self.get_subset(mt_range)
 
         all_energies = []
@@ -152,14 +194,22 @@ class ENDFHandling:
         return unique_energies, aggregate_cross_sections
 
     def write_files(self, file_path: Path, energies, cross_sections):
+        """Creates files formatted with data. This is mainly for my personal projects.
+
+        Args:
+            file_path (Path): File path to write to.
+            energies (_type_): Energies to write.
+            cross_sections (_type_): Cross-sections to write.
+        """
         with open(file_path, "w") as f:
             f.write("energy,cross_section\n")
 
             for energy, cross_section in zip(energies, cross_sections):
                 f.write(f"{energy},{cross_section}\n")
 
-    def create_material(self, material_name: str):
-        result_folder = Path("endf_data/ready_endfs") / Path(material_name)
+    def create_material(self):
+        """Creates a material folder with aggregated scattering and absorption cross-sections."""
+        result_folder = Path("endf_data/ready_endfs") / Path(self.material_name)
         result_folder.mkdir(exist_ok=True, parents=True)
 
         scattering_energies, scattering_cross_sections = self.aggregate_mts(
@@ -170,17 +220,25 @@ class ENDFHandling:
         )
 
         self.write_files(
-            result_folder / Path(material_name + "_aggregated_scattering.csv"),
+            result_folder / Path(self.material_name + "_aggregated_scattering.csv"),
             scattering_energies,
             scattering_cross_sections,
         )
         self.write_files(
-            result_folder / Path(material_name + "_aggregated_absorption.csv"),
+            result_folder / Path(self.material_name + "_aggregated_absorption.csv"),
             absorption_energies,
             absorption_cross_sections,
         )
 
-    def get_endf_name(self):
+    def get_endf_name(self) -> str:
+        """Extracts the name from the ENDF
+
+        Raises:
+            ValueError: _description_
+
+        Returns:
+            str: Name of the material, formatted as h-1: [lowercase element]-[isotope].
+        """
         with open(self.endf_file_path, "r") as f:
             for index, line in enumerate(f):
                 if index == 5:
@@ -192,7 +250,8 @@ class ENDFHandling:
                         raise ValueError
 
                     endf_name = results[0]
-                    # print(f"{endf_name} for {self.endf_file_path.stem} - {line}")
+
+                    endf_name = endf_name.lower()
 
                     break
 
