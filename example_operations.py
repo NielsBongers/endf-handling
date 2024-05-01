@@ -21,7 +21,7 @@ for endf_path in tqdm(endf_files, desc="Reading ENDF files", total=len(endf_file
         cross_section = value["cross_section"]
         plt.plot(energy, cross_section, label=f"MT{key}")
 
-    plt.title(f"Scattering cross-section for {material_name}")
+    plt.title(f"Absorption cross-section for {material_name}")
     plt.loglog()
     plt.xlabel("Energy (eV)")
     plt.ylabel("Cross-section (barn)")
